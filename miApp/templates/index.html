@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso de Ramos y Actividades</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- CSS personalizado -->
+    <style>
+        body {
+            background-color: #f0f8ff;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container-form {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 40px;
+            max-width: 900px;
+            margin: 50px auto;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #007bff;
+        }
+
+        h2 {
+            color: #28a745;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .form-label {
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            font-size: 1.1rem;
+            padding: 10px 20px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: #28a745;
+            border-color: #28a745;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-success {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            box-shadow: 0 4px 10px rgba(23, 162, 184, 0.4);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+
+        input[type="time"], input[type="number"], select {
+            background-color: #f0f8ff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .ramo, .actividad {
+            padding: 20px;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+
+        .ramo {
+            background-color: #f0fff4;
+        }
+
+        .actividad {
+            background-color: #fffaf0;
+        }
+    </style>
+
+    <script>
+        // Función para agregar dinámicamente un nuevo ramo con horarios
+        function agregarRamo() {
+            const ramosDiv = document.getElementById('ramos-seccion');
+            const ramoIndex = document.querySelectorAll('.ramo').length;
+
+            // Crear un contenedor para el nuevo ramo y sus horarios
+            const nuevoRamo = document.createElement('div');
+            nuevoRamo.classList.add('ramo', 'mb-4');
+            nuevoRamo.innerHTML = `
+                <h3 class="text-primary">Ramo ${ramoIndex + 1}</h3>
+                <div class="form-group">
+                    <label for="ramo_${ramoIndex}_nombre" class="form-label">Nombre del ramo:</label>
+                    <input type="text" class="form-control" id="ramo_${ramoIndex}_nombre" name="ramos_${ramoIndex}_nombre" placeholder="Nombre del ramo">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Horario 1:</label>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Día:</label>
+                            <select name="ramos_${ramoIndex}_horarios_0_dia" class="form-select">
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                                <option value="Sábado">Sábado</option>
+                                <option value="Domingo">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hora de inicio:</label>
+                            <input type="time" class="form-control" name="ramos_${ramoIndex}_horarios_0_inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hora de término:</label>
+                            <input type="time" class="form-control" name="ramos_${ramoIndex}_horarios_0_termino">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Horario 2 (opcional):</label>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Día:</label>
+                            <select name="ramos_${ramoIndex}_horarios_1_dia" class="form-select">
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                                <option value="Sábado">Sábado</option>
+                                <option value="Domingo">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hora de inicio:</label>
+                            <input type="time" class="form-control" name="ramos_${ramoIndex}_horarios_1_inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hora de término:</label>
+                            <input type="time" class="form-control" name="ramos_${ramoIndex}_horarios_1_termino">
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            ramosDiv.appendChild(nuevoRamo);
+        }
+
+        // Función para agregar dinámicamente una nueva actividad extracurricular
+        function agregarActividad() {
+            const actividadesDiv = document.getElementById('actividades-seccion');
+            const actividadIndex = document.querySelectorAll('.actividad').length;
+
+            const nuevaActividad = document.createElement('div');
+            nuevaActividad.classList.add('actividad', 'mb-4');
+            nuevaActividad.innerHTML = `
+                <h3 class="text-success">Actividad Extracurricular ${actividadIndex + 1}</h3>
+                <div class="form-group">
+                    <label for="actividad_${actividadIndex}_nombre" class="form-label">Nombre de la actividad:</label>
+                    <input type="text" class="form-control" id="actividad_${actividadIndex}_nombre" name="actividades_${actividadIndex}_nombre" placeholder="Nombre de la actividad">
+                </div>
+
+                <label class="form-label">¿Tiene un horario fijo?</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="actividades_${actividadIndex}_tipo" value="fijo" onclick="mostrarHorario(${actividadIndex})">
+                    <label class="form-check-label">Sí</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="actividades_${actividadIndex}_tipo" value="semanal" onclick="ocultarHorario(${actividadIndex})">
+                    <label class="form-check-label">No, es una cantidad de horas semanales</label>
+                </div>
+
+                <div id="horarios_actividad_${actividadIndex}" style="display:none;" class="mt-3">
+                    <label class="form-label">Horario 1:</label>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Día:</label>
+                            <select name="actividades_${actividadIndex}_horarios_0_dia" class="form-select">
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                                <option value="Sábado">Sábado</option>
+                                <option value="Domingo">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hora de inicio:</label>
+                            <input type="time" class="form-control" name="actividades_${actividadIndex}_horarios_0_inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hora de término:</label>
+                            <input type="time" class="form-control" name="actividades_${actividadIndex}_horarios_0_termino">
+                        </div>
+                    </div>
+
+                    <label class="form-label mt-3">Horario 2 (opcional):</label>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Día:</label>
+                            <select name="actividades_${actividadIndex}_horarios_1_dia" class="form-select">
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                                <option value="Sábado">Sábado</option>
+                                <option value="Domingo">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hora de inicio:</label>
+                            <input type="time" class="form-control" name="actividades_${actividadIndex}_horarios_1_inicio">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hora de término:</label>
+                            <input type="time" class="form-control" name="actividades_${actividadIndex}_horarios_1_termino">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="horas_semanales_${actividadIndex}" style="display:none;" class="mt-3">
+                    <label class="form-label">Horas semanales:</label>
+                    <input type="number" class="form-control" name="actividades_${actividadIndex}_horas_semanales" min="1" placeholder="Ingrese horas semanales">
+                </div>
+            `;
+
+            actividadesDiv.appendChild(nuevaActividad);
+        }
+
+        // Mostrar los campos de horario fijo con más de un horario posible
+        function mostrarHorario(index) {
+            document.getElementById(`horarios_actividad_${index}`).style.display = 'block';
+            document.getElementById(`horas_semanales_${index}`).style.display = 'none';
+        }
+
+        // Ocultar los campos de horario fijo y mostrar horas semanales
+        function ocultarHorario(index) {
+            document.getElementById(`horarios_actividad_${index}`).style.display = 'none';
+            document.getElementById(`horas_semanales_${index}`).style.display = 'block';
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container-form">
+        <h1>Formulario de Ramos y Actividades</h1>
+
+        <form action="{% url 'guardar_ramos_y_actividades' %}" method="POST">
+            {% csrf_token %}
+
+            <div id="ramos-seccion">
+                <h2>Ramos</h2>
+                <!-- Aquí se agregarán dinámicamente los ramos y horarios -->
+            </div>
+
+            <button type="button" class="btn btn-primary mb-4" onclick="agregarRamo()">Agregar Ramo</button>
+
+            <div id="actividades-seccion">
+                <h2>Actividades Extracurriculares</h2>
+                <!-- Aquí se agregarán dinámicamente las actividades -->
+            </div>
+
+            <button type="button" class="btn btn-secondary mb-4" onclick="agregarActividad()">Agregar Actividad Extracurricular</button>
+
+            <input type="submit" class="btn btn-success" value="Enviar">
+        </form>
+    </div>
+</body>
+</html>
+
+
+
