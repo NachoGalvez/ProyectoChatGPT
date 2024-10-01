@@ -1,8 +1,19 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
 def index(request):
-    return render(request, 'index.html')
+    # Si el usuario está autenticado, lo redirigimos al formulario de ingreso de ramos
+    if request.user.is_authenticated:
+        return redirect('ingresar_ramos')  # Redirige al formulario de ramos
+    else:
+        # Si no está autenticado, lo redirigimos al login
+        return redirect('login')
+
+# Vista protegida para ingresar ramos
+@login_required  # Este decorador asegura que solo usuarios autenticados puedan acceder
+def ingresar_ramos(request):
+    # Aquí va la lógica de tu formulario de ingreso de ramos
+    return render(request, 'ingresar_ramos.html')  # Página para ingresar ramos
 
 def generar_prompt(ramos, actividades):
     """
@@ -14,7 +25,7 @@ def generar_prompt(ramos, actividades):
     # Añadir los ramos al prompt
     prompt += "Ramos:\n"
     for ramo in ramos:
-        prompt += f"- {ramo['nombre']} con los siguientes horarios:\n"
+        prompt += f"- {ramo['nombre']} (Dificultad: {ramo['dificultad']}/10) con los siguientes horarios:\n"
         for horario in ramo['horarios']:
             prompt += f"  Día: {horario['dia']}, de {horario['inicio']} a {horario['termino']}\n"
 
@@ -41,6 +52,7 @@ def guardar_ramos_y_actividades(request):
         ramo_index = 0
         while f'ramos_{ramo_index}_nombre' in request.POST:
             nombre_ramo = request.POST.get(f'ramos_{ramo_index}_nombre')
+            dificultad_ramo = request.POST.get(f'ramos_{ramo_index}_dificultad')
             horarios = []
 
             # Procesamos los horarios del ramo (hasta 3 horarios)
@@ -60,6 +72,7 @@ def guardar_ramos_y_actividades(request):
 
             ramos_completos.append({
                 'nombre': nombre_ramo,
+                'dificultad': dificultad_ramo,
                 'horarios': horarios,
             })
             ramo_index += 1
@@ -114,3 +127,40 @@ def guardar_ramos_y_actividades(request):
 
     else:
         return HttpResponse("No se recibieron datos.")
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from .forms import RegistroForm
+
+def registro(request):
+    if request.method == 'POST':
+        form = RegistroForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('index')  # Redirige a la página principal o donde desees
+    else:
+        form = RegistroForm()
+    return render(request, 'registro.html', {'form': form})
+
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import render, redirect
+
+def iniciar_sesion(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get('username')  # Usamos 'username' ya que es el campo del formulario
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('index')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+def cerrar_sesion(request):
+    logout(request)
+    return redirect('index')
