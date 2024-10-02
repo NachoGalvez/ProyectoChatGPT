@@ -1,5 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad
+from django.http import HttpResponse
+from .forms import RegistroForm
+from django.contrib import messages
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import AuthenticationForm
 
 def index(request):
     # Si el usuario está autenticado, lo redirigimos al formulario de ingreso de ramos
@@ -9,7 +15,6 @@ def index(request):
         # Si no está autenticado, lo redirigimos al login
         return redirect('login')
 
-from .models import Ramo, ActividadExtracurricular
 @login_required
 def ingresar_ramos(request):
     # Obtener los ramos y actividades del usuario actual
@@ -20,9 +25,6 @@ def ingresar_ramos(request):
         'ramos': ramos,
         'actividades': actividades,
     })
-
-from django.shortcuts import render
-from .models import Ramo, ActividadExtracurricular
 
 @login_required
 def mostrar_ramos(request):
@@ -37,6 +39,9 @@ def mostrar_ramos(request):
         'ramos': ramos,
         'actividades': actividades,
     })
+
+def preferencias(request):
+    return redirect('preferencias')
 
 def generar_prompt(ramos, actividades):
     """
@@ -66,11 +71,6 @@ def generar_prompt(ramos, actividades):
 
     return prompt
 
-from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad
-from django.http import HttpResponse
-
-from django.shortcuts import render, redirect
-from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad
 
 @login_required
 def guardar_ramos_y_actividades(request):
@@ -131,14 +131,9 @@ def guardar_ramos_y_actividades(request):
 
             actividad_index += 1
 
-        return redirect('mostrar_prompt')  # Redirige a donde desees
+        return redirect('mostrar_ramos')  # Redirige a donde desees
     else:
         return HttpResponse("No se recibieron datos.")
-
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
-from .forms import RegistroForm
 
 def registro(request):
     if request.method == 'POST':
@@ -151,9 +146,6 @@ def registro(request):
         form = RegistroForm()
     return render(request, 'registro.html', {'form': form})
 
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import AuthenticationForm
-from django.shortcuts import render, redirect
 
 def iniciar_sesion(request):
     if request.method == 'POST':
@@ -173,9 +165,6 @@ def cerrar_sesion(request):
     logout(request)
     return redirect('index')
 
-from django.shortcuts import redirect, get_object_or_404
-from django.contrib import messages
-from .models import Ramo, ActividadExtracurricular
 
 @login_required
 def eliminar_ramo(request, ramo_id):

@@ -10,5 +10,6 @@ urlpatterns = [
     path('logout/', views.cerrar_sesion, name='logout'),
     path('mostrar_ramos/', views.mostrar_ramos, name='mostrar_ramos'),
     path('eliminar_ramo/<int:ramo_id>/', views.eliminar_ramo, name='eliminar_ramo'),
-    path('eliminar_actividad/<int:actividad_id>/', views.eliminar_actividad, name='eliminar_actividad')
+    path('eliminar_actividad/<int:actividad_id>/', views.eliminar_actividad, name='eliminar_actividad'),
+    path('preferencias/', views.preferencias, name='preferencias')
 ]
