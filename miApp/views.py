@@ -9,11 +9,34 @@ def index(request):
         # Si no está autenticado, lo redirigimos al login
         return redirect('login')
 
-# Vista protegida para ingresar ramos
-@login_required  # Este decorador asegura que solo usuarios autenticados puedan acceder
+from .models import Ramo, ActividadExtracurricular
+@login_required
 def ingresar_ramos(request):
-    # Aquí va la lógica de tu formulario de ingreso de ramos
-    return render(request, 'ingresar_ramos.html')  # Página para ingresar ramos
+    # Obtener los ramos y actividades del usuario actual
+    ramos = Ramo.objects.filter(user=request.user)
+    actividades = ActividadExtracurricular.objects.filter(user=request.user)
+
+    return render(request, 'ingresar_ramos.html', {
+        'ramos': ramos,
+        'actividades': actividades,
+    })
+
+from django.shortcuts import render
+from .models import Ramo, ActividadExtracurricular
+
+@login_required
+def mostrar_ramos(request):
+    # Obtener los ramos del usuario actual
+    ramos = Ramo.objects.filter(user=request.user).prefetch_related('horarios')
+    
+    # Obtener las actividades del usuario actual
+    actividades = ActividadExtracurricular.objects.filter(user=request.user).prefetch_related('horarios')
+
+    # Pasar los datos al template
+    return render(request, 'mostrar_ramos.html', {
+        'ramos': ramos,
+        'actividades': actividades,
+    })
 
 def generar_prompt(ramos, actividades):
     """
@@ -43,38 +66,38 @@ def generar_prompt(ramos, actividades):
 
     return prompt
 
+from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad
+from django.http import HttpResponse
+
+from django.shortcuts import render, redirect
+from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad
+
+@login_required
 def guardar_ramos_y_actividades(request):
     if request.method == 'POST':
-        ramos_completos = []
-        actividades_completas = []
-
         # Procesamos los ramos
         ramo_index = 0
         while f'ramos_{ramo_index}_nombre' in request.POST:
             nombre_ramo = request.POST.get(f'ramos_{ramo_index}_nombre')
             dificultad_ramo = request.POST.get(f'ramos_{ramo_index}_dificultad')
-            horarios = []
+            ramo = Ramo.objects.create(nombre=nombre_ramo, dificultad=dificultad_ramo, user=request.user)
 
-            # Procesamos los horarios del ramo (hasta 3 horarios)
             horario_index = 0
             while f'ramos_{ramo_index}_horarios_{horario_index}_dia' in request.POST:
                 dia = request.POST.get(f'ramos_{ramo_index}_horarios_{horario_index}_dia')
                 hora_inicio = request.POST.get(f'ramos_{ramo_index}_horarios_{horario_index}_inicio')
                 hora_termino = request.POST.get(f'ramos_{ramo_index}_horarios_{horario_index}_termino')
 
-                if dia and hora_inicio and hora_termino:
-                    horarios.append({
-                        'dia': dia,
-                        'inicio': hora_inicio,
-                        'termino': hora_termino,
-                    })
+                # Solo creamos el horario si tanto la hora de inicio como la hora de término están presentes
+                if hora_inicio and hora_termino:
+                    HorarioRamo.objects.create(
+                        ramo=ramo,
+                        dia=dia,
+                        hora_inicio=hora_inicio,
+                        hora_termino=hora_termino
+                    )
                 horario_index += 1
 
-            ramos_completos.append({
-                'nombre': nombre_ramo,
-                'dificultad': dificultad_ramo,
-                'horarios': horarios,
-            })
             ramo_index += 1
 
         # Procesamos las actividades extracurriculares
@@ -82,51 +105,36 @@ def guardar_ramos_y_actividades(request):
         while f'actividades_{actividad_index}_nombre' in request.POST:
             nombre_actividad = request.POST.get(f'actividades_{actividad_index}_nombre')
             tipo = request.POST.get(f'actividades_{actividad_index}_tipo')
+            actividad = ActividadExtracurricular.objects.create(nombre=nombre_actividad, tipo=tipo, user=request.user)
 
             if tipo == 'fijo':
-                horarios = []
                 horario_index = 0
                 while f'actividades_{actividad_index}_horarios_{horario_index}_dia' in request.POST:
                     dia = request.POST.get(f'actividades_{actividad_index}_horarios_{horario_index}_dia')
                     hora_inicio = request.POST.get(f'actividades_{actividad_index}_horarios_{horario_index}_inicio')
                     hora_termino = request.POST.get(f'actividades_{actividad_index}_horarios_{horario_index}_termino')
 
-                    if dia and hora_inicio and hora_termino:
-                        horarios.append({
-                            'dia': dia,
-                            'inicio': hora_inicio,
-                            'termino': hora_termino,
-                        })
+                    # Solo creamos el horario si tanto la hora de inicio como la hora de término están presentes
+                    if hora_inicio and hora_termino:
+                        HorarioActividad.objects.create(
+                            actividad=actividad,
+                            dia=dia,
+                            hora_inicio=hora_inicio,
+                            hora_termino=hora_termino
+                        )
                     horario_index += 1
-
-                actividades_completas.append({
-                    'nombre': nombre_actividad,
-                    'tipo': 'fijo',
-                    'horarios': horarios,
-                })
 
             elif tipo == 'semanal':
                 horas_semanales = request.POST.get(f'actividades_{actividad_index}_horas_semanales')
-                actividades_completas.append({
-                    'nombre': nombre_actividad,
-                    'tipo': 'semanal',
-                    'horas_semanales': horas_semanales,
-                })
+                actividad.horas_semanales = horas_semanales
+                actividad.save()
 
             actividad_index += 1
 
-        # Guardar los datos en la sesión
-        request.session['ramos'] = ramos_completos
-        request.session['actividades'] = actividades_completas
-
-        # Generamos el prompt
-        prompt = generar_prompt(ramos_completos, actividades_completas)
-
-        # Mostramos el prompt en la pantalla
-        return render(request, 'mostrar_prompt.html', {'prompt': prompt})
-
+        return redirect('mostrar_prompt')  # Redirige a donde desees
     else:
         return HttpResponse("No se recibieron datos.")
+
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
@@ -164,3 +172,23 @@ def iniciar_sesion(request):
 def cerrar_sesion(request):
     logout(request)
     return redirect('index')
+
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
+from .models import Ramo, ActividadExtracurricular
+
+@login_required
+def eliminar_ramo(request, ramo_id):
+    # Obtener el ramo y asegurarse de que pertenece al usuario
+    ramo = get_object_or_404(Ramo, id=ramo_id, user=request.user)
+    ramo.delete()
+    messages.success(request, f'El ramo "{ramo.nombre}" ha sido eliminado.')
+    return redirect('mostrar_ramos')  # Redirigir a la vista que muestra los ramos y actividades
+
+@login_required
+def eliminar_actividad(request, actividad_id):
+    # Obtener la actividad y asegurarse de que pertenece al usuario
+    actividad = get_object_or_404(ActividadExtracurricular, id=actividad_id, user=request.user)
+    actividad.delete()
+    messages.success(request, f'La actividad "{actividad.nombre}" ha sido eliminada.')
+    return redirect('mostrar_ramos')  # Redirigir a la vista que muestra los ramos y actividades

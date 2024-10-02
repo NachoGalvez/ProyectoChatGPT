@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Mis Ramos y Actividades</h1>
+
+    <h2>Ramos</h2>
+    <div class="mb-4">
+        {% if ramos %}
+            <ul class="list-group">
+                {% for ramo in ramos %}
+                    <li class="list-group-item">
+                        <h4>{{ ramo.nombre }} (Dificultad: {{ ramo.dificultad }}/10)</h4>
+                        <ul>
+                            {% for horario in ramo.horarios.all %}
+                                <li>Día: {{ horario.dia }}, de {{ horario.hora_inicio }} a {{ horario.hora_termino }}</li>
+                            {% empty %}
+                                <li>No hay horarios asignados para este ramo.</li>
+                            {% endfor %}
+                        </ul>
+                        <!-- Botón de eliminar ramo -->
+                        <button class="btn btn-danger" onclick="confirmarEliminacionRamo({{ ramo.id }}, '{{ ramo.nombre }}')">Eliminar</button>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No tienes ramos asignados.</p>
+        {% endif %}
+    </div>
+
+    <h2>Actividades Extracurriculares</h2>
+    <div class="mb-4">
+        {% if actividades %}
+            <ul class="list-group">
+                {% for actividad in actividades %}
+                    <li class="list-group-item">
+                        <h4>{{ actividad.nombre }} ({{ actividad.tipo }})</h4>
+                        {% if actividad.tipo == 'fijo' %}
+                            <ul>
+                                {% for horario in actividad.horarios.all %}
+                                    <li>Día: {{ horario.dia }}, de {{ horario.hora_inicio }} a {{ horario.hora_termino }}</li>
+                                {% empty %}
+                                    <li>No hay horarios asignados para esta actividad.</li>
+                                {% endfor %}
+                            </ul>
+                        {% elif actividad.tipo == 'semanal' %}
+                            <p>Horas semanales requeridas: {{ actividad.horas_semanales }} horas</p>
+                        {% endif %}
+                        <!-- Botón de eliminar actividad -->
+                        <button class="btn btn-danger" onclick="confirmarEliminacionActividad({{ actividad.id }}, '{{ actividad.nombre }}')">Eliminar</button>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No tienes actividades extracurriculares asignadas.</p>
+        {% endif %}
+    </div>
+
+    <a href="{% url 'ingresar_ramos' %}" class="btn btn-primary">Volver a ingresar ramos y actividades</a>
+
+    <script>
+        // Función para confirmar la eliminación de un ramo
+        function confirmarEliminacionRamo(ramoId, ramoNombre) {
+            if (confirm(`¿Estás seguro de que deseas eliminar el ramo "${ramoNombre}"?`)) {
+                window.location.href = `{% url 'eliminar_ramo' ramo_id=0 %}`.replace(0, ramoId);
+            }
+        }
+
+        // Función para confirmar la eliminación de una actividad
+        function confirmarEliminacionActividad(actividadId, actividadNombre) {
+            if (confirm(`¿Estás seguro de que deseas eliminar la actividad "${actividadNombre}"?`)) {
+                window.location.href = `{% url 'eliminar_actividad' actividad_id=0 %}`.replace(0, actividadId);
+            }
+        }
+    </script>
+{% endblock %}

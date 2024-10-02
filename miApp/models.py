@@ -33,7 +33,6 @@ class CustomUser(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
 
     objects = CustomUserManager()
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['alias']
 
@@ -50,3 +49,42 @@ class CustomUser(AbstractBaseUser):
     def is_staff(self):
         return self.is_admin
 
+
+from django.contrib.auth import get_user_model
+# Obtener el modelo de usuario personalizado
+User = get_user_model()
+
+class Ramo(models.Model):
+    nombre = models.CharField(max_length=255)
+    dificultad = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Relación con el usuario
+
+    def __str__(self):
+        return self.nombre
+
+class HorarioRamo(models.Model):
+    ramo = models.ForeignKey(Ramo, related_name='horarios', on_delete=models.CASCADE)
+    dia = models.CharField(max_length=10)
+    hora_inicio = models.TimeField()
+    hora_termino = models.TimeField()
+
+    def __str__(self):
+        return f"{self.dia} {self.hora_inicio}-{self.hora_termino}"
+
+class ActividadExtracurricular(models.Model):
+    nombre = models.CharField(max_length=255)
+    tipo = models.CharField(max_length=10, choices=[('fijo', 'Fijo'), ('semanal', 'Semanal')])
+    horas_semanales = models.IntegerField(null=True, blank=True)  # Solo si es semanal
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Relación con el usuario
+
+    def __str__(self):
+        return self.nombre
+
+class HorarioActividad(models.Model):
+    actividad = models.ForeignKey(ActividadExtracurricular, related_name='horarios', on_delete=models.CASCADE)
+    dia = models.CharField(max_length=10)
+    hora_inicio = models.TimeField()
+    hora_termino = models.TimeField()
+
+    def __str__(self):
+        return f"{self.dia} {self.hora_inicio}-{self.hora_termino}"

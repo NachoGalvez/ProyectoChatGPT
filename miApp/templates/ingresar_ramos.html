@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!-- Este bloque debe estar dentro del body, no dentro del head -->
-
 <div class="container-form">
     <h1>Formulario de Ramos y Actividades</h1>
 
@@ -11,14 +9,12 @@
 
         <div id="ramos-seccion">
             <h2>Ramos</h2>
-            <!-- Aquí se agregarán dinámicamente los ramos y horarios -->
         </div>
 
         <button type="button" class="btn btn-primary mb-4" onclick="agregarRamo()">Agregar Ramo</button>
 
         <div id="actividades-seccion">
             <h2>Actividades Extracurriculares</h2>
-            <!-- Aquí se agregarán dinámicamente las actividades -->
         </div>
 
         <button type="button" class="btn btn-secondary mb-4" onclick="agregarActividad()">Agregar Actividad Extracurricular</button>
@@ -28,6 +24,43 @@
 </div>
 
 <script>
+    // Función para validar el formulario antes de enviarlo
+    function validarFormulario(event) {
+        // Buscar todos los horarios (pares de inicio y término)
+        const ramos = document.querySelectorAll('.ramo');
+        ramos.forEach((ramo, index) => {
+            // Validamos los horarios del ramo
+            for (let i = 0; i < 3; i++) {  // Hasta 3 horarios opcionales por ramo
+                const horaInicio = document.querySelector(`[name="ramos_${index}_horarios_${i}_inicio"]`);
+                const horaTermino = document.querySelector(`[name="ramos_${index}_horarios_${i}_termino"]`);
+
+                // Si alguno de los dos campos de horario está vacío, eliminamos ambos
+                if (horaInicio && horaTermino && (!horaInicio.value || !horaTermino.value)) {
+                    horaInicio.removeAttribute('name');
+                    horaTermino.removeAttribute('name');
+                }
+            }
+        });
+
+        // Hacemos lo mismo para las actividades extracurriculares
+        const actividades = document.querySelectorAll('.actividad');
+        actividades.forEach((actividad, index) => {
+            // Validamos los horarios de la actividad extracurricular (si es de tipo fijo)
+            for (let i = 0; i < 3; i++) {  // Hasta 3 horarios opcionales por actividad
+                const horaInicio = document.querySelector(`[name="actividades_${index}_horarios_${i}_inicio"]`);
+                const horaTermino = document.querySelector(`[name="actividades_${index}_horarios_${i}_termino"]`);
+
+                if (horaInicio && horaTermino && (!horaInicio.value || !horaTermino.value)) {
+                    horaInicio.removeAttribute('name');
+                    horaTermino.removeAttribute('name');
+                }
+            }
+        });
+    }
+
+    // Agregar la validación al formulario
+    document.querySelector('form').addEventListener('submit', validarFormulario);
+
     // Función para agregar dinámicamente un nuevo ramo con horarios
     function agregarRamo() {
         const ramosDiv = document.getElementById('ramos-seccion');
@@ -125,6 +158,22 @@
             </div>
         `;
         ramosDiv.appendChild(nuevoRamo);
+    }
+
+    // Mostrar los campos de horario fijo con más de un horario posible
+    function mostrarHorario(index) {
+        // Mostrar los campos de horarios fijos
+        document.getElementById(`horarios_actividad_${index}`).style.display = 'block';
+        // Ocultar las horas semanales
+        document.getElementById(`horas_semanales_${index}`).style.display = 'none';
+    }
+
+    // Ocultar los campos de horario fijo y mostrar horas semanales
+    function ocultarHorario(index) {
+        // Ocultar los campos de horarios fijos
+        document.getElementById(`horarios_actividad_${index}`).style.display = 'none';
+        // Mostrar las horas semanales
+        document.getElementById(`horas_semanales_${index}`).style.display = 'block';
     }
 
     // Función para agregar dinámicamente una nueva actividad extracurricular
@@ -232,17 +281,8 @@
         `;
         actividadesDiv.appendChild(nuevaActividad);
     }
-
-    // Mostrar los campos de horario fijo con más de un horario posible
-    function mostrarHorario(index) {
-        document.getElementById(`horarios_actividad_${index}`).style.display = 'block';
-        document.getElementById(`horas_semanales_${index}`).style.display = 'none';
-    }
-
-    // Ocultar los campos de horario fijo y mostrar horas semanales
-    function ocultarHorario(index) {
-        document.getElementById(`horarios_actividad_${index}`).style.display = 'none';
-        document.getElementById(`horas_semanales_${index}`).style.display = 'block';
-    }
 </script>
+
 {% endblock %}
+
+
