@@ -40,8 +40,6 @@ def mostrar_ramos(request):
         'actividades': actividades,
     })
 
-def preferencias(request):
-    return redirect('preferencias')
 
 def generar_prompt(ramos, actividades):
     """
@@ -181,3 +179,65 @@ def eliminar_actividad(request, actividad_id):
     actividad.delete()
     messages.success(request, f'La actividad "{actividad.nombre}" ha sido eliminada.')
     return redirect('mostrar_ramos')  # Redirigir a la vista que muestra los ramos y actividades
+
+from django.shortcuts import render, redirect
+from .forms import PreferenciaForm
+from .models import Preferencia
+
+@login_required
+def preferencias(request):
+    # Obtén las preferencias del usuario o crea una nueva si no existen
+    preferencia, created = Preferencia.objects.get_or_create(usuario=request.user)
+    
+    if request.method == 'POST':
+        form = PreferenciaForm(request.POST, instance=preferencia)
+
+        # Obtener las preferencias personalizadas nuevas del formulario
+        nuevas_preferencias = []
+        for key, value in request.POST.items():
+            if key.startswith('nueva_preferencia_') and value.strip():
+                nuevas_preferencias.append(value.strip())
+        
+        if form.is_valid():
+            # Guardar el resto de los campos del formulario
+            preferencia = form.save(commit=False)
+
+            # Combinar las preferencias personalizadas existentes con las nuevas
+            if preferencia.preferencias_personalizadas:
+                # Si ya hay preferencias personalizadas, añádelas a las nuevas
+                preferencias_existentes = preferencia.preferencias_personalizadas.splitlines()
+                nuevas_preferencias = preferencias_existentes + nuevas_preferencias
+            
+            # Guardar todas las preferencias personalizadas como una cadena separada por saltos de línea
+            preferencia.preferencias_personalizadas = "\n".join(nuevas_preferencias)
+            preferencia.save()
+
+            return redirect('preferencias')
+
+    else:
+        # Precargar el formulario con los datos existentes
+        form = PreferenciaForm(instance=preferencia)
+    
+    # Dividir las preferencias personalizadas en líneas para mostrarlas
+    preferencias_personalizadas = preferencia.preferencias_personalizadas.splitlines() if preferencia.preferencias_personalizadas else []
+
+    return render(request, 'preferencias.html', {
+        'form': form,
+        'preferencias_personalizadas': preferencias_personalizadas
+    })
+
+
+
+@login_required
+def eliminar_preferencia(request, pref):
+    preferencia = Preferencia.objects.get(usuario=request.user)
+    
+    # Filtrar las preferencias para eliminar la que coincide
+    preferencias = preferencia.preferencias_personalizadas.splitlines()
+    if pref in preferencias:
+        preferencias.remove(pref)
+        # Guardar las preferencias actualizadas
+        preferencia.preferencias_personalizadas = "\n".join(preferencias)
+        preferencia.save()
+
+    return redirect('preferencias')

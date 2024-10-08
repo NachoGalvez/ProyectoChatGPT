@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
+from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 # Manager personalizado para el modelo de usuario
 class CustomUserManager(BaseUserManager):
@@ -50,7 +52,6 @@ class CustomUser(AbstractBaseUser):
         return self.is_admin
 
 
-from django.contrib.auth import get_user_model
 # Obtener el modelo de usuario personalizado
 User = get_user_model()
 
@@ -88,3 +89,20 @@ class HorarioActividad(models.Model):
 
     def __str__(self):
         return f"{self.dia} {self.hora_inicio}-{self.hora_termino}"
+    
+from django.conf import settings  # Importa settings para obtener el modelo de usuario configurado
+from django.db import models
+
+
+class Preferencia(models.Model):
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # Relación con modelo de usuario personalizado
+    horario_estudio = models.CharField(max_length=10, choices=[('mañana', 'Mañana'), ('tarde', 'Tarde'), ('noche', 'Noche')])
+    tiempo_llegada_uni = models.IntegerField(default=0)  # Tiempo en minutos
+    tiempo_preparacion = models.IntegerField(default=0)  # Tiempo en minutos desde que despierta
+    lugar_estudio = models.CharField(max_length=50, blank=True)  # Lugar donde le gusta estudiar
+    tiempo_antes_dormir = models.IntegerField(default=0)  # Tiempo en minutos antes de dormir para terminar actividades
+    preferencias_personalizadas = models.TextField(blank=True, null=True)  # Texto con múltiples preferencias personalizadas
+
+    def __str__(self):
+        return f"Preferencias de {self.usuario.alias}"
+

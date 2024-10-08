@@ -8048,7 +8048,7 @@ input[type="time"], input[type="number"], select {
   
   .text-uppercase {
     text-transform: uppercase !important; }
-  
+ 
   .text-capitalize {
     text-transform: capitalize !important; }
   
@@ -8451,3 +8451,74 @@ input[type="time"], input[type="number"], select {
   
   .subscribe-form .form-control {
     background: #4897fc; }
+  
+/* Container para el formulario */
+.container-form {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+    max-width: 800px;
+}
+
+/* Títulos centrados */
+h1, h3 {
+    color: #007bff;
+    text-align: center;
+}
+
+/* Labels del formulario */
+label {
+    font-weight: bold;
+    color: #343a40;
+}
+
+/* Botones con íconos */
+.btn-primary, .btn-success, .btn-danger {
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-primary i, .btn-success i, .btn-danger i {
+    margin-right: 8px;
+}
+
+/* Efecto hover en los botones */
+.btn:hover {
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+/* Estilo para los input y selects */
+input[type="text"], input[type="number"], select {
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    margin-top: 5px;
+}
+
+/* Espaciado entre los campos del formulario */
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Íconos en los botones */
+button i {
+    margin-right: 8px;
+}
+
+/* Customización de los input-group (para minutos) */
+.input-group-text {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 0 5px 5px 0;
+}
+
