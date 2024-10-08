@@ -32,16 +32,13 @@
             </div>
             <ul class="list-unstyled components mb-5">
                 <li class="active">
-                    <a href="#"><span class="fa fa-home mr-3"></span> Home</a>
+                    <a href="{% url 'ingresar_ramos' %}"><span class="fa fa-calendar-plus-o mr-3"></span> Nuevo ramo o actividad</a>
                 </li>
                 <li>
-                    <a href="#"><span class="fa fa-download mr-3 notif"><small class="d-flex align-items-center justify-content-center">5</small></span> Download</a>
+                    <a href="{% url 'mostrar_ramos' %}"><span class="fa fa-book mr-3"></span> Ramos y actividades</a>
                 </li>
                 <li>
-                    <a href="#"><span class="fa fa-gift mr-3"></span> Gift Code</a>
-                </li>
-                <li>
-                    <a href="#"><span class="fa fa-trophy mr-3"></span> Top Review</a>
+                    <a href="{% url 'preferencias' %}"><span class="fa fa-sliders mr-3"></span> Preferencias</a>
                 </li>
                 <li>
                     <a href="#"><span class="fa fa-cog mr-3"></span> Settings</a>
