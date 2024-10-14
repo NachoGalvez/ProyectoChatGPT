@@ -300,7 +300,7 @@ def pagina_generar_calendario(request):
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=10000,
-                temperature=0.7,
+                temperature=0.5,
             )
 
             # Acceder correctamente al contenido generado
