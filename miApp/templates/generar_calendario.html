@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container text-center">
+        <h1>Generar Calendario</h1>
+        <p>Haz clic en el botón para generar un calendario personalizado basado en tus ramos y actividades.</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Generar Calendario</button>
+        </form>
+    </div>
+{% endblock %}
