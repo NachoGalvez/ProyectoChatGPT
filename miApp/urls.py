@@ -12,5 +12,6 @@ urlpatterns = [
     path('eliminar_ramo/<int:ramo_id>/', views.eliminar_ramo, name='eliminar_ramo'),
     path('eliminar_actividad/<int:actividad_id>/', views.eliminar_actividad, name='eliminar_actividad'),
     path('preferencias/', views.preferencias, name='preferencias'),
-    path('eliminar_preferencia/<str:pref>/', views.eliminar_preferencia, name='eliminar_preferencia')
+    path('eliminar_preferencia/<str:pref>/', views.eliminar_preferencia, name='eliminar_preferencia'),
+    path('generar-calendario/', views.pagina_generar_calendario, name='pagina_generar_calendario')
 ]

@@ -11,6 +11,7 @@
     <!-- Google Fonts y Font Awesome -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{% static 'miApp/css/estilos.css' %}">
@@ -41,13 +42,13 @@
                     <a href="{% url 'preferencias' %}"><span class="fa fa-sliders mr-3"></span> Preferencias</a>
                 </li>
                 <li>
-                    <a href="#"><span class="fa fa-cog mr-3"></span> Settings</a>
+                    <a href="{% url 'pagina_generar_calendario' %}"><span class="fa fa-calendar mr-3"></span> Generar Calendario</a>
                 </li>
                 <li>
                     <a href="#"><span class="fa fa-support mr-3"></span> Support</a>
                 </li>
                 <li>
-                    <a href="{% url 'logout' %}"><span class="fa fa-sign-out mr-3"></span> Sign Out</a>
+                    <a href="{% url 'logout' %}"><span class="fa fa-power-off mr-3"></span> Sign Out</a>
                 </li>
             </ul>
         </nav>

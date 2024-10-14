@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 
 {% block content %}
 <div class="container container-form">
@@ -11,31 +12,26 @@
             <label><strong>¿En qué horario prefieres estudiar?</strong></label>
             <div class="row">
                 <div class="col-md-4">
-                    <!-- Asegúrate de que form.horario_estudio está precargado con los valores -->
                     {{ form.horario_estudio }}
                 </div>
             </div>
         </div>
 
-        <!-- Tiempo de viaje -->
+        <!-- Tiempo de viaje con input más pequeño y la palabra "minutos" sin recuadro -->
         <div class="form-group">
             <label><strong>¿Cuánto te demoras en promedio en tu viaje hacia y desde la universidad?</strong></label>
             <div class="input-group">
-                {{ form.tiempo_llegada_uni }}
-                <div class="input-group-append">
-                    <span class="input-group-text">minutos</span>
-                </div>
+                {{ form.tiempo_llegada_uni|add_class:"form-control-sm" }}
+                <span class="ml-2">minutos</span> <!-- Palabra "minutos" alineada al lado -->
             </div>
         </div>
 
-        <!-- Tiempo de preparación -->
+        <!-- Tiempo de preparación con input más pequeño y la palabra "minutos" sin recuadro -->
         <div class="form-group">
             <label><strong>¿Cuánto tardas en prepararte luego de despertar?</strong></label>
             <div class="input-group">
-                {{ form.tiempo_preparacion }}
-                <div class="input-group-append">
-                    <span class="input-group-text">minutos</span>
-                </div>
+                {{ form.tiempo_preparacion|add_class:"form-control-sm" }}
+                <span class="ml-2">minutos</span> <!-- Palabra "minutos" alineada al lado -->
             </div>
         </div>
 
@@ -45,19 +41,17 @@
             {{ form.lugar_estudio }}
         </div>
 
-        <!-- Tiempo antes de dormir -->
+        <!-- Tiempo antes de dormir con input más pequeño y la palabra "minutos" sin recuadro -->
         <div class="form-group">
             <label><strong>¿Cuánto tiempo antes de dormir prefieres terminar las actividades?</strong></label>
             <div class="input-group">
-                {{ form.tiempo_antes_dormir }}
-                <div class="input-group-append">
-                    <span class="input-group-text">minutos</span>
-                </div>
+                {{ form.tiempo_antes_dormir|add_class:"form-control-sm" }}
+                <span class="ml-2">minutos</span> <!-- Palabra "minutos" alineada al lado -->
             </div>
         </div>
 
         <!-- Preferencias personalizadas -->
-        <div class="form-group">
+        <div class="form-group mt-5">
             <label><strong>Preferencias personalizadas</strong></label>
             <div id="nuevas-preferencias">
                 <input type="text" class="form-control mt-2" name="nueva_preferencia_0" placeholder="Nueva preferencia">
@@ -67,23 +61,25 @@
             </button>
         </div>
 
-        <!-- Preferencias personalizadas actuales -->
-        <h3 class="mt-4">Preferencias Personalizadas Actuales</h3>
-        <div id="preferencias-personalizadas">
-        {% for pref in preferencias_personalizadas %}
-            <div class="form-group">
-            <input type="text" class="form-control" value="{{ pref }}" readonly>
-            <a href="{% url 'eliminar_preferencia' pref %}" class="btn btn-danger mt-2">
-                <i class="fas fa-trash"></i> Eliminar
-            </a>
-            </div>
-        {% endfor %}
-        </div>
-
-        <!-- Botón de guardar -->
+        <!-- Botón para guardar preferencias -->
         <button type="submit" class="btn btn-primary btn-block mt-4">
             <i class="fas fa-save"></i> Guardar Preferencias
         </button>
+
+        <!-- Preferencias personalizadas actuales -->
+        <h3 class="mt-4">Preferencias Personalizadas Actuales</h3>
+        <div id="preferencias-personalizadas">
+            {% for pref in preferencias_personalizadas %}
+                <div class="form-group">
+                    <input type="text" class="form-control" value="{{ pref }}" readonly>
+                    <a href="{% url 'eliminar_preferencia' pref %}" class="btn btn-danger mt-2">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        
     </form>
 </div>
 
@@ -101,5 +97,4 @@
     }
 </script>
 {% endblock %}
-
 

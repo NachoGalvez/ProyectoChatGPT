@@ -241,3 +241,78 @@ def eliminar_preferencia(request, pref):
         preferencia.save()
 
     return redirect('preferencias')
+
+
+import openai
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import Ramo, ActividadExtracurricular, Preferencia
+from openai import OpenAI
+
+
+@login_required
+def pagina_generar_calendario(request):
+    if request.method == "POST":
+        # Obtener el usuario actual
+        user = request.user
+        
+        # Obtener ramos y actividades del usuario
+        ramos = Ramo.objects.filter(user=user)  # Asegúrate de que sea 'user' o 'usuario' según tu modelo
+        actividades = ActividadExtracurricular.objects.filter(user=user)
+        
+        # Obtener las preferencias del usuario
+        preferencias = Preferencia.objects.get(usuario=user)
+
+        # Formatear los datos para enviarlos a la API
+        ramos_info = [{"nombre": ramo.nombre, "dificultad": ramo.dificultad, 
+                       "horarios": [{"dia": h.dia, "inicio": h.hora_inicio, "termino": h.hora_termino} for h in ramo.horarios.all()]}
+                      for ramo in ramos]
+
+        actividades_info = [{"nombre": actividad.nombre, "tipo": actividad.tipo,
+                             "horarios": [{"dia": h.dia, "inicio": h.hora_inicio, "termino": h.hora_termino} for h in actividad.horarios.all()]}
+                            if actividad.tipo == "fijo" else {"nombre": actividad.nombre, "horas_semanales": actividad.horas_semanales}
+                            for actividad in actividades]
+
+        # Agregar preferencias
+        preferencias_info = {
+            "horario_estudio": preferencias.horario_estudio, 
+            "tiempo_llegada_uni": preferencias.tiempo_llegada_uni,
+            "tiempo_preparacion": preferencias.tiempo_preparacion,
+            "tiempo_antes_dormir": preferencias.tiempo_antes_dormir
+        }
+
+        # Crear el prompt para enviar a la API
+        prompt = f"Genera un calendario semanal para un estudiante con los siguientes ramos: {ramos_info}, actividades: {actividades_info}, y las preferencias: {preferencias_info}. Quiero que incorpores todas las horas de la semana, a que hora debo levantarme, salir camino a la universidad para llegar a la hora a clases, a que hora debo prepararme para acostarme y en los horarios de estudio, que ramo deberia estudiar. considera la dificultad de cada ramo."
+        
+        # Leer la clave de API desde un archivo de texto
+        with open('apikey.txt', 'r') as file:
+            openai_api_key = file.read().strip()
+
+        # Crear el cliente para la API de OpenAI
+        client = OpenAI(api_key=openai_api_key)
+
+        try:
+            # Realizar la solicitud a OpenAI usando el nuevo modelo
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",  # Usa gpt-4 si tienes acceso
+                messages=[
+                    {"role": "system", "content": "Eres un asistente que genera calendarios personalizados muy detallista."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=10000,
+                temperature=0.5,
+            )
+
+            # Acceder correctamente al contenido generado
+            calendario_generado = response.choices[0].message.content.strip()
+
+        except Exception as e:
+            calendario_generado = f"Error al generar el calendario: {str(e)}"
+
+        # Renderizar la página con el calendario generado
+        return render(request, 'calendario_generado.html', {'calendario': calendario_generado})
+
+    # Si es una solicitud GET, simplemente mostramos la página con el botón
+    return render(request, 'generar_calendario.html')
+
+

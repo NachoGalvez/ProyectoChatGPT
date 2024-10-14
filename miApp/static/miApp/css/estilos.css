@@ -11,6 +11,63 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Ajuste de tamaño para inputs pequeños */
+input.form-control-sm {
+  width: auto;
+  display: inline-block;
+  max-width: 100px; /* Define el tamaño máximo del input */
+}
+
+.input-group-text {
+  padding: 6px 10px;
+}
+
+/* Asegurar que los campos de texto sean visibles y tengan buen contraste */
+input[type="text"], input[type="number"] {
+  background-color: #f8f9fa; /* Fondo claro */
+  color: #212529; /* Texto oscuro */
+  border: 1px solid #ced4da; /* Borde sutil */
+  border-radius: 4px; /* Bordes ligeramente redondeados */
+  padding: 10px; /* Espaciado interno */
+  width: 100%; /* Ancho completo del contenedor */
+}
+
+/* Ajustar el input en foco */
+input[type="text"]:focus, input[type="number"]:focus {
+  background-color: #ffffff; /* Fondo blanco en foco */
+  color: #212529; /* Texto visible */
+  border-color: #80bdff; /* Borde azul suave en foco */
+  outline: none; /* Eliminar el borde predeterminado del navegador */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.25); /* Sombra suave */
+}
+
+/* Alinear la palabra "minutos" junto al input sin recuadro */
+.input-group span {
+  margin-left: 10px;
+  font-size: 1rem; /* Asegurar el mismo tamaño de fuente */
+  color: #212529;
+  display: inline-block;
+}
+
+/* Asegurar que los campos de texto sean visibles y tengan buen contraste */
+input[type="text"], input[type="number"] {
+  background-color: #f8f9fa; /* Fondo claro */
+  color: #212529; /* Texto oscuro */
+  border: 1px solid #ced4da; /* Borde sutil */
+  border-radius: 4px; /* Bordes ligeramente redondeados */
+  padding: 10px; /* Espaciado interno */
+  width: 100%; /* Ancho completo del contenedor */
+}
+
+/* Ajustar el input en foco (cuando el usuario lo selecciona) */
+input[type="text"]:focus, input[type="number"]:focus {
+  background-color: #ffffff; /* Fondo blanco en foco */
+  color: #212529; /* Texto visible */
+  border-color: #80bdff; /* Borde azul suave en foco */
+  outline: none; /* Eliminar el borde predeterminado del navegador */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.25); /* Sombra suave */
+}
+
 h1, h2 {
     color: #333;
     text-align: center;
@@ -8048,7 +8105,7 @@ input[type="time"], input[type="number"], select {
   
   .text-uppercase {
     text-transform: uppercase !important; }
- 
+  
   .text-capitalize {
     text-transform: capitalize !important; }
   
@@ -8451,74 +8508,3 @@ input[type="time"], input[type="number"], select {
   
   .subscribe-form .form-control {
     background: #4897fc; }
-  
-/* Container para el formulario */
-.container-form {
-    background-color: #fff;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    margin-top: 30px;
-    max-width: 800px;
-}
-
-/* Títulos centrados */
-h1, h3 {
-    color: #007bff;
-    text-align: center;
-}
-
-/* Labels del formulario */
-label {
-    font-weight: bold;
-    color: #343a40;
-}
-
-/* Botones con íconos */
-.btn-primary, .btn-success, .btn-danger {
-    font-size: 1.2rem;
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.btn-primary i, .btn-success i, .btn-danger i {
-    margin-right: 8px;
-}
-
-/* Efecto hover en los botones */
-.btn:hover {
-    transform: scale(1.05);
-    transition: all 0.3s ease;
-}
-
-/* Estilo para los input y selects */
-input[type="text"], input[type="number"], select {
-    background-color: #f8f9fa;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    padding: 10px;
-    width: 100%;
-    margin-top: 5px;
-}
-
-/* Espaciado entre los campos del formulario */
-.form-group {
-    margin-bottom: 20px;
-}
-
-/* Íconos en los botones */
-button i {
-    margin-right: 8px;
-}
-
-/* Customización de los input-group (para minutos) */
-.input-group-text {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 0 5px 5px 0;
-}
-
