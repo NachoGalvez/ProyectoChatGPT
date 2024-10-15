@@ -276,13 +276,13 @@ def pagina_generar_calendario(request):
         # Agregar preferencias
         preferencias_info = {
             "horario_estudio": preferencias.horario_estudio, 
-            "tiempo_llegada_uni": preferencias.tiempo_llegada_uni,
-            "tiempo_preparacion": preferencias.tiempo_preparacion,
-            "tiempo_antes_dormir": preferencias.tiempo_antes_dormir
+            "tiempo_de_viaje_a_la_universidad_minutos": preferencias.tiempo_llegada_uni,
+            "tiempo_preparacion_despues_de_despertar": preferencias.tiempo_preparacion,
+            "tiempo_libre_antes_dormir": preferencias.tiempo_antes_dormir
         }
 
         # Crear el prompt para enviar a la API
-        prompt = f"Genera un calendario semanal para un estudiante con los siguientes ramos: {ramos_info}, actividades: {actividades_info}, y las preferencias: {preferencias_info}. Quiero que incorpores todas las horas de la semana, a que hora debo levantarme, salir camino a la universidad para llegar a la hora a clases, a que hora debo prepararme para acostarme y en los horarios de estudio, que ramo deberia estudiar. considera la dificultad de cada ramo."
+        prompt = f"Genera un calendario semanal para un estudiante con los siguientes ramos: {ramos_info} y actividades: {actividades_info}. Quiero que hagas un horario hora por hora de toda la semana, considerando a que hora debo levantarme, a que hora debería estudiar (y que ramo estudiar) y en que horario hacer otras actividades o estar libre. Quiero que tengas en consideración la dificultad de cada ramo, entre mas dificil, mas tiempo de estudio necesita. Ademas considerar que una persona debe dormir entre 6 y 8 horas. Quiero que al final dejes un consejo para poder conseguir llevar a cabo ese horario propuesto."
         
         # Leer la clave de API desde un archivo de texto
         with open('apikey.txt', 'r') as file:
@@ -296,11 +296,11 @@ def pagina_generar_calendario(request):
             response = client.chat.completions.create(
                 model="gpt-4o-mini",  # Usa gpt-4 si tienes acceso
                 messages=[
-                    {"role": "system", "content": "Eres un asistente que genera calendarios personalizados muy detallista."},
+                    {"role": "system", "content": f"Eres un asistente que genera calendarios personalizados muy detallista. Debes tener en cuenta estas preferencias del estudiante: {preferencias_info}"},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=10000,
-                temperature=0.5,
+                max_tokens=15000,
+                temperature=0.6,
             )
 
             # Acceder correctamente al contenido generado
