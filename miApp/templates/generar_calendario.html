@@ -3,11 +3,20 @@
 {% block content %}
     <div class="container text-center">
         <h1>Generar Calendario</h1>
-        <p>Haz clic en el botón para generar un calendario personalizado basado en tus ramos y actividades.</p>
-        
+
+        <!-- Mostrar el último calendario generado -->
+        {% if ultimo_calendario %}
+            <h2>Último Calendario Generado:</h2>
+            <pre>{{ ultimo_calendario.contenido }}</pre>
+        {% else %}
+            <p>No tienes ningún calendario generado.</p>
+        {% endif %}
+
+        <!-- Botón para generar un nuevo calendario -->
         <form method="POST">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary">Generar Calendario</button>
+            <button type="submit" class="btn btn-primary mt-4">Generar Nuevo Calendario</button>
         </form>
     </div>
 {% endblock %}
+

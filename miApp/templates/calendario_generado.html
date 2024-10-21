@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-
-{% block content %}
-    <div class="container text-center">
-        <h1>Calendario Generado</h1>
-        <pre>{{ calendario }}</pre>
-        <a href="{% url 'pagina_generar_calendario' %}" class="btn btn-primary mt-4">Volver a Generar</a>
-    </div>
-{% endblock %}

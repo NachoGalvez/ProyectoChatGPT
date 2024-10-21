@@ -106,3 +106,10 @@ class Preferencia(models.Model):
     def __str__(self):
         return f"Preferencias de {self.usuario.alias}"
 
+class Calendario(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='calendarios')
+    contenido = models.TextField()  # Aquí se almacena el calendario como texto, por ejemplo, en formato JSON o texto plano.
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Calendario de {self.usuario.username} - {self.creado_en}"

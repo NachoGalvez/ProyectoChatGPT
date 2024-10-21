@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad
+from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad, Calendario, Preferencia
 from django.http import HttpResponse
-from .forms import RegistroForm
+from .forms import RegistroForm, PreferenciaForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
+from openai import OpenAI
 
+#Vista predeterminada
 def index(request):
     # Si el usuario está autenticado, lo redirigimos al formulario de ingreso de ramos
     if request.user.is_authenticated:
@@ -15,6 +17,7 @@ def index(request):
         # Si no está autenticado, lo redirigimos al login
         return redirect('login')
 
+#Formulario para ingresar ramos y actividades
 @login_required
 def ingresar_ramos(request):
     # Obtener los ramos y actividades del usuario actual
@@ -26,6 +29,7 @@ def ingresar_ramos(request):
         'actividades': actividades,
     })
 
+#Ver y eliminar ramos y actividades
 @login_required
 def mostrar_ramos(request):
     # Obtener los ramos del usuario actual
@@ -40,36 +44,7 @@ def mostrar_ramos(request):
         'actividades': actividades,
     })
 
-
-def generar_prompt(ramos, actividades):
-    """
-    Función para generar un prompt en lenguaje natural basado en los ramos
-    y actividades ingresados por el usuario.
-    """
-    prompt = "Por favor, genera el mejor horario posible para los siguientes ramos y actividades:\n\n"
-
-    # Añadir los ramos al prompt
-    prompt += "Ramos:\n"
-    for ramo in ramos:
-        prompt += f"- {ramo['nombre']} (Dificultad: {ramo['dificultad']}/10) con los siguientes horarios:\n"
-        for horario in ramo['horarios']:
-            prompt += f"  Día: {horario['dia']}, de {horario['inicio']} a {horario['termino']}\n"
-
-    # Añadir las actividades extracurriculares al prompt
-    prompt += "\nActividades Extracurriculares:\n"
-    for actividad in actividades:
-        if actividad['tipo'] == 'fijo':
-            prompt += f"- {actividad['nombre']} con horarios fijos:\n"
-            for horario in actividad['horarios']:
-                prompt += f"  Día: {horario['dia']}, de {horario['inicio']} a {horario['termino']}\n"
-        elif actividad['tipo'] == 'semanal':
-            prompt += f"- {actividad['nombre']} requiere {actividad['horas_semanales']} horas semanales (sin horario fijo).\n"
-
-    prompt += "\nPor favor, optimiza estos horarios de manera que no haya conflictos."
-
-    return prompt
-
-
+#Función que permite asignar los ramos y actividades al usuario
 @login_required
 def guardar_ramos_y_actividades(request):
     if request.method == 'POST':
@@ -133,6 +108,7 @@ def guardar_ramos_y_actividades(request):
     else:
         return HttpResponse("No se recibieron datos.")
 
+#Maneja el registro de un usuario
 def registro(request):
     if request.method == 'POST':
         form = RegistroForm(request.POST)
@@ -144,7 +120,7 @@ def registro(request):
         form = RegistroForm()
     return render(request, 'registro.html', {'form': form})
 
-
+#Maneja el log in
 def iniciar_sesion(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -159,11 +135,12 @@ def iniciar_sesion(request):
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
+#Maneja el cierre de sesion
 def cerrar_sesion(request):
     logout(request)
     return redirect('index')
 
-
+#Función para eliminar un ramo
 @login_required
 def eliminar_ramo(request, ramo_id):
     # Obtener el ramo y asegurarse de que pertenece al usuario
@@ -172,6 +149,7 @@ def eliminar_ramo(request, ramo_id):
     messages.success(request, f'El ramo "{ramo.nombre}" ha sido eliminado.')
     return redirect('mostrar_ramos')  # Redirigir a la vista que muestra los ramos y actividades
 
+#Función para eliminar una actividad
 @login_required
 def eliminar_actividad(request, actividad_id):
     # Obtener la actividad y asegurarse de que pertenece al usuario
@@ -180,10 +158,7 @@ def eliminar_actividad(request, actividad_id):
     messages.success(request, f'La actividad "{actividad.nombre}" ha sido eliminada.')
     return redirect('mostrar_ramos')  # Redirigir a la vista que muestra los ramos y actividades
 
-from django.shortcuts import render, redirect
-from .forms import PreferenciaForm
-from .models import Preferencia
-
+#Maneja el ingreso de preferencias
 @login_required
 def preferencias(request):
     # Obtén las preferencias del usuario o crea una nueva si no existen
@@ -226,8 +201,7 @@ def preferencias(request):
         'preferencias_personalizadas': preferencias_personalizadas
     })
 
-
-
+#Maneja la eliminación de una preferencia
 @login_required
 def eliminar_preferencia(request, pref):
     preferencia = Preferencia.objects.get(usuario=request.user)
@@ -242,22 +216,17 @@ def eliminar_preferencia(request, pref):
 
     return redirect('preferencias')
 
-
-import openai
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import Ramo, ActividadExtracurricular, Preferencia
-from openai import OpenAI
-
-
+#Maneja la generación de un calendario
 @login_required
 def pagina_generar_calendario(request):
+    user = request.user
+    
+    # Obtener el último calendario generado por el usuario
+    ultimo_calendario = Calendario.objects.filter(usuario=user).order_by('-creado_en').first()
+
     if request.method == "POST":
-        # Obtener el usuario actual
-        user = request.user
-        
         # Obtener ramos y actividades del usuario
-        ramos = Ramo.objects.filter(user=user)  # Asegúrate de que sea 'user' o 'usuario' según tu modelo
+        ramos = Ramo.objects.filter(user=user)
         actividades = ActividadExtracurricular.objects.filter(user=user)
         
         # Obtener las preferencias del usuario
@@ -276,13 +245,14 @@ def pagina_generar_calendario(request):
         # Agregar preferencias
         preferencias_info = {
             "horario_estudio": preferencias.horario_estudio, 
-            "tiempo_de_viaje_a_la_universidad_minutos": preferencias.tiempo_llegada_uni,
+            "tiempo_de_viaje_desde_casa_a_la_universidad_minutos": preferencias.tiempo_llegada_uni,
+            "tiempo_de_viaje_desde_universidad_a_la_casa_minutos": preferencias.tiempo_llegada_uni,
             "tiempo_preparacion_despues_de_despertar": preferencias.tiempo_preparacion,
             "tiempo_libre_antes_dormir": preferencias.tiempo_antes_dormir
         }
 
         # Crear el prompt para enviar a la API
-        prompt = f"Genera un calendario semanal para un estudiante con los siguientes ramos: {ramos_info} y actividades: {actividades_info}. Quiero que hagas un horario hora por hora de toda la semana, considerando a que hora debo levantarme, a que hora debería estudiar (y que ramo estudiar) y en que horario hacer otras actividades o estar libre. Quiero que tengas en consideración la dificultad de cada ramo, entre mas dificil, mas tiempo de estudio necesita. Ademas considerar que una persona debe dormir entre 6 y 8 horas. Quiero que al final dejes un consejo para poder conseguir llevar a cabo ese horario propuesto."
+        prompt = f"Genera un calendario semanal para un estudiante con los siguientes ramos: {ramos_info} y actividades: {actividades_info}. Quiero que hagas un horario hora por hora de toda la semana, considerando a qué hora debo levantarme, a qué hora debería estudiar (y qué ramo estudiar) y en qué horario hacer otras actividades o estar libre. Quiero que tengas en cuenta la dificultad de cada ramo, entre más difícil, más tiempo de estudio necesita. Además, considera que una persona debe dormir entre 6 y 8 horas. Quiero que al final dejes un consejo para poder conseguir llevar a cabo ese horario propuesto."
         
         # Leer la clave de API desde un archivo de texto
         with open('apikey.txt', 'r') as file:
@@ -292,11 +262,11 @@ def pagina_generar_calendario(request):
         client = OpenAI(api_key=openai_api_key)
 
         try:
-            # Realizar la solicitud a OpenAI usando el nuevo modelo
+            # Realizar la solicitud a OpenAI usando el modelo
             response = client.chat.completions.create(
                 model="gpt-4o-mini",  # Usa gpt-4 si tienes acceso
                 messages=[
-                    {"role": "system", "content": f"Eres un asistente que genera calendarios personalizados muy detallista. Debes tener en cuenta estas preferencias del estudiante: {preferencias_info}"},
+                    {"role": "system", "content": f"Eres un asistente que genera calendarios personalizados muy detallista. Debes tener en cuenta estas preferencias del estudiante: {preferencias_info}. Siempre considera los viajes, cuanto me demoro desde la casa a la universidad y desde la universidad a la casa."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=15000,
@@ -305,14 +275,15 @@ def pagina_generar_calendario(request):
 
             # Acceder correctamente al contenido generado
             calendario_generado = response.choices[0].message.content.strip()
+            
+            # Guardar el nuevo calendario en la base de datos
+            nuevo_calendario = Calendario.objects.create(usuario=user, contenido=calendario_generado)
+            ultimo_calendario = nuevo_calendario  # Actualizar el último calendario
 
         except Exception as e:
             calendario_generado = f"Error al generar el calendario: {str(e)}"
 
-        # Renderizar la página con el calendario generado
-        return render(request, 'calendario_generado.html', {'calendario': calendario_generado})
-
-    # Si es una solicitud GET, simplemente mostramos la página con el botón
-    return render(request, 'generar_calendario.html')
+    # Renderizar la página con el último calendario, si existe
+    return render(request, 'generar_calendario.html', {'ultimo_calendario': ultimo_calendario})
 
 
