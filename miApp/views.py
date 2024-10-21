@@ -216,7 +216,7 @@ def eliminar_preferencia(request, pref):
 
     return redirect('preferencias')
 
-#Maneja la generación de un calendario
+# Maneja la generación de un calendario
 @login_required
 def pagina_generar_calendario(request):
     user = request.user
@@ -248,8 +248,15 @@ def pagina_generar_calendario(request):
             "tiempo_de_viaje_desde_casa_a_la_universidad_minutos": preferencias.tiempo_llegada_uni,
             "tiempo_de_viaje_desde_universidad_a_la_casa_minutos": preferencias.tiempo_llegada_uni,
             "tiempo_preparacion_despues_de_despertar": preferencias.tiempo_preparacion,
-            "tiempo_libre_antes_dormir": preferencias.tiempo_antes_dormir
+            "tiempo_libre_antes_dormir": preferencias.tiempo_antes_dormir,
         }
+
+        # Verificar si hay preferencias personalizadas adicionales
+        if preferencias.preferencias_personalizadas:
+            preferencias_info["preferencias_personalizadas"] = preferencias.preferencias_personalizadas
+
+        # Crear el contexto (forma en que actuará el chatcito)
+        contexto = f"Eres un asistente que genera calendarios personalizados muy detallista. Debes tener en cuenta estas preferencias del estudiante: {preferencias_info}. Para cada día (de lunes a domingo) debes incluir el viaje desde la casa a la universidad, y desde la universidad a la casa. Considera el lugar donde se está efectuando cada actividad."
 
         # Crear el prompt para enviar a la API
         prompt = f"Genera un calendario semanal para un estudiante con los siguientes ramos: {ramos_info} y actividades: {actividades_info}. Quiero que hagas un horario hora por hora de toda la semana, considerando a qué hora debo levantarme, a qué hora debería estudiar (y qué ramo estudiar) y en qué horario hacer otras actividades o estar libre. Quiero que tengas en cuenta la dificultad de cada ramo, entre más difícil, más tiempo de estudio necesita. Además, considera que una persona debe dormir entre 6 y 8 horas. Quiero que al final dejes un consejo para poder conseguir llevar a cabo ese horario propuesto."
@@ -266,7 +273,7 @@ def pagina_generar_calendario(request):
             response = client.chat.completions.create(
                 model="gpt-4o-mini",  # Usa gpt-4 si tienes acceso
                 messages=[
-                    {"role": "system", "content": f"Eres un asistente que genera calendarios personalizados muy detallista. Debes tener en cuenta estas preferencias del estudiante: {preferencias_info}. Siempre considera los viajes, cuanto me demoro desde la casa a la universidad y desde la universidad a la casa."},
+                    {"role": "system", "content": contexto},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=15000,
@@ -285,5 +292,6 @@ def pagina_generar_calendario(request):
 
     # Renderizar la página con el último calendario, si existe
     return render(request, 'generar_calendario.html', {'ultimo_calendario': ultimo_calendario})
+
 
 
