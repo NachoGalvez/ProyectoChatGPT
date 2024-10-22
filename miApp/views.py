@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad, Calendario, Preferencia
+from .models import Ramo, HorarioRamo, ActividadExtracurricular, HorarioActividad, Calendario, Preferencia, Sugerencia
 from django.http import HttpResponse
 from .forms import RegistroForm, PreferenciaForm
 from django.contrib import messages
@@ -216,6 +216,8 @@ def eliminar_preferencia(request, pref):
 
     return redirect('preferencias')
 
+
+
 # Maneja la generación de un calendario
 @login_required
 def pagina_generar_calendario(request):
@@ -223,75 +225,127 @@ def pagina_generar_calendario(request):
     
     # Obtener el último calendario generado por el usuario
     ultimo_calendario = Calendario.objects.filter(usuario=user).order_by('-creado_en').first()
+    sugerencia_text = None
 
     if request.method == "POST":
-        # Obtener ramos y actividades del usuario
-        ramos = Ramo.objects.filter(user=user)
-        actividades = ActividadExtracurricular.objects.filter(user=user)
-        
-        # Obtener las preferencias del usuario
-        preferencias = Preferencia.objects.get(usuario=user)
-
-        # Formatear los datos para enviarlos a la API
-        ramos_info = [{"nombre": ramo.nombre, "dificultad": ramo.dificultad, 
-                       "horarios": [{"dia": h.dia, "inicio": h.hora_inicio, "termino": h.hora_termino} for h in ramo.horarios.all()]}
-                      for ramo in ramos]
-
-        actividades_info = [{"nombre": actividad.nombre, "tipo": actividad.tipo,
-                             "horarios": [{"dia": h.dia, "inicio": h.hora_inicio, "termino": h.hora_termino} for h in actividad.horarios.all()]}
-                            if actividad.tipo == "fijo" else {"nombre": actividad.nombre, "horas_semanales": actividad.horas_semanales}
-                            for actividad in actividades]
-
-        # Agregar preferencias
-        preferencias_info = {
-            "horario_estudio": preferencias.horario_estudio, 
-            "tiempo_de_viaje_desde_casa_a_la_universidad_minutos": preferencias.tiempo_llegada_uni,
-            "tiempo_de_viaje_desde_universidad_a_la_casa_minutos": preferencias.tiempo_llegada_uni,
-            "tiempo_preparacion_despues_de_despertar": preferencias.tiempo_preparacion,
-            "tiempo_libre_antes_dormir": preferencias.tiempo_antes_dormir,
-        }
-
-        # Verificar si hay preferencias personalizadas adicionales
-        if preferencias.preferencias_personalizadas:
-            preferencias_info["preferencias_personalizadas"] = preferencias.preferencias_personalizadas
-
-        # Crear el contexto (forma en que actuará el chatcito)
-        contexto = f"Eres un asistente que genera calendarios personalizados muy detallista. Debes tener en cuenta estas preferencias del estudiante: {preferencias_info}. Para cada día (de lunes a domingo) debes incluir el viaje desde la casa a la universidad, y desde la universidad a la casa. Considera el lugar donde se está efectuando cada actividad."
-
-        # Crear el prompt para enviar a la API
-        prompt = f"Genera un calendario semanal para un estudiante con los siguientes ramos: {ramos_info} y actividades: {actividades_info}. Quiero que hagas un horario hora por hora de toda la semana, considerando a qué hora debo levantarme, a qué hora debería estudiar (y qué ramo estudiar) y en qué horario hacer otras actividades o estar libre. Quiero que tengas en cuenta la dificultad de cada ramo, entre más difícil, más tiempo de estudio necesita. Además, considera que una persona debe dormir entre 6 y 8 horas. Quiero que al final dejes un consejo para poder conseguir llevar a cabo ese horario propuesto."
-        
-        # Leer la clave de API desde un archivo de texto
-        with open('apikey.txt', 'r') as file:
-            openai_api_key = file.read().strip()
-
-        # Crear el cliente para la API de OpenAI
-        client = OpenAI(api_key=openai_api_key)
-
-        try:
-            # Realizar la solicitud a OpenAI usando el modelo
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",  # Usa gpt-4 si tienes acceso
-                messages=[
-                    {"role": "system", "content": contexto},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=15000,
-                temperature=0.6,
-            )
-
-            # Acceder correctamente al contenido generado
-            calendario_generado = response.choices[0].message.content.strip()
+        # Si hay una sugerencia ingresada
+        if 'sugerencia' in request.POST:
+            sugerencia_text = request.POST.get('sugerencia')
             
-            # Guardar el nuevo calendario en la base de datos
-            nuevo_calendario = Calendario.objects.create(usuario=user, contenido=calendario_generado)
-            ultimo_calendario = nuevo_calendario  # Actualizar el último calendario
+            # Guardar la sugerencia asociada al último calendario
+            Sugerencia.objects.create(calendario=ultimo_calendario, contenido=sugerencia_text)
+            
+            # Obtener los últimos 3 calendarios y sus sugerencias
+            ultimos_calendarios = Calendario.objects.filter(usuario=user).order_by('-creado_en')[:3]
+            ultimas_sugerencias = Sugerencia.objects.filter(calendario__in=ultimos_calendarios).order_by('-creado_en')[:3]
 
-        except Exception as e:
-            calendario_generado = f"Error al generar el calendario: {str(e)}"
+            # Preparar los datos para la API
+            calendarios_info = [{"contenido": calendario.contenido} for calendario in ultimos_calendarios]
+            sugerencias_info = [{"contenido": sugerencia.contenido} for sugerencia in ultimas_sugerencias]
 
-    # Renderizar la página con el último calendario, si existe
+            # Crear el contexto para el asistente
+            contexto = f"Eres un asistente que mejora los calendarios del estudiante. Aquí tienes los últimos tres calendarios: {calendarios_info}, y las siguientes sugerencias de mejora: {sugerencias_info}. Crea un nuevo calendario teniendo en cuenta estas sugerencias."
+
+            # Leer la clave de API desde un archivo de texto
+            with open('apikey.txt', 'r') as file:
+                openai_api_key = file.read().strip()
+
+            # Crear el cliente para la API de OpenAI
+            client = OpenAI(api_key=openai_api_key)
+
+            try:
+                # Solicitud a la API de OpenAI
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",  # Usa gpt-4 si tienes acceso
+                    messages=[
+                        {"role": "system", "content": contexto},
+                        {"role": "user", "content": "Genera un nuevo calendario basado en las sugerencias."}
+                    ],
+                    max_tokens=15000,
+                    temperature=0.6,
+                )
+
+                # Obtener el nuevo calendario
+                nuevo_calendario_generado = response.choices[0].message.content.strip()
+
+                # Guardar el nuevo calendario
+                nuevo_calendario = Calendario.objects.create(usuario=user, contenido=nuevo_calendario_generado)
+                ultimo_calendario = nuevo_calendario  # Actualizar el último calendario
+
+            except Exception as e:
+                nuevo_calendario_generado = f"Error al generar el calendario: {str(e)}"
+
+        else:
+            user = request.user
+    
+            # Obtener el último calendario generado por el usuario
+            ultimo_calendario = Calendario.objects.filter(usuario=user).order_by('-creado_en').first()
+
+            if request.method == "POST":
+                # Obtener ramos y actividades del usuario
+                ramos = Ramo.objects.filter(user=user)
+                actividades = ActividadExtracurricular.objects.filter(user=user)
+                
+                # Obtener las preferencias del usuario
+                preferencias = Preferencia.objects.get(usuario=user)
+
+                # Formatear los datos para enviarlos a la API
+                ramos_info = [{"nombre": ramo.nombre, "dificultad": ramo.dificultad, 
+                            "horarios": [{"dia": h.dia, "inicio": h.hora_inicio, "termino": h.hora_termino} for h in ramo.horarios.all()]}
+                            for ramo in ramos]
+
+                actividades_info = [{"nombre": actividad.nombre, "tipo": actividad.tipo,
+                                    "horarios": [{"dia": h.dia, "inicio": h.hora_inicio, "termino": h.hora_termino} for h in actividad.horarios.all()]}
+                                    if actividad.tipo == "fijo" else {"nombre": actividad.nombre, "horas_semanales": actividad.horas_semanales}
+                                    for actividad in actividades]
+
+                # Agregar preferencias
+                preferencias_info = {
+                    "horario_estudio": preferencias.horario_estudio, 
+                    "tiempo_de_viaje_desde_casa_a_la_universidad_minutos": preferencias.tiempo_llegada_uni,
+                    "tiempo_de_viaje_desde_universidad_a_la_casa_minutos": preferencias.tiempo_llegada_uni,
+                    "tiempo_preparacion_despues_de_despertar": preferencias.tiempo_preparacion,
+                    "tiempo_libre_antes_dormir": preferencias.tiempo_antes_dormir,
+                }
+
+                # Verificar si hay preferencias personalizadas adicionales
+                if preferencias.preferencias_personalizadas:
+                    preferencias_info["preferencias_personalizadas"] = preferencias.preferencias_personalizadas
+
+                # Crear el contexto (forma en que actuará el chatcito)
+                contexto = f"Eres un asistente que genera calendarios personalizados muy detallista. Debes tener en cuenta estas preferencias del estudiante: {preferencias_info}. Para cada día (de lunes a domingo) debes incluir el viaje desde la casa a la universidad, y desde la universidad a la casa. Considera el lugar donde se está efectuando cada actividad."
+
+                # Crear el prompt para enviar a la API
+                prompt = f"Genera un calendario semanal para un estudiante con los siguientes ramos: {ramos_info} y actividades: {actividades_info}. Quiero que hagas un horario hora por hora de toda la semana, considerando a qué hora debo levantarme, a qué hora debería estudiar (y qué ramo estudiar) y en qué horario hacer otras actividades o estar libre. Quiero que tengas en cuenta la dificultad de cada ramo, entre más difícil, más tiempo de estudio necesita. Además, considera que una persona debe dormir entre 6 y 8 horas. Quiero que al final dejes un consejo para poder conseguir llevar a cabo ese horario propuesto."
+                
+                # Leer la clave de API desde un archivo de texto
+                with open('apikey.txt', 'r') as file:
+                    openai_api_key = file.read().strip()
+
+                # Crear el cliente para la API de OpenAI
+                client = OpenAI(api_key=openai_api_key)
+
+                try:
+                    # Realizar la solicitud a OpenAI usando el modelo
+                    response = client.chat.completions.create(
+                        model="gpt-4o-mini",  # Usa gpt-4 si tienes acceso
+                        messages=[
+                            {"role": "system", "content": contexto},
+                            {"role": "user", "content": prompt}
+                        ],
+                        max_tokens=15000,
+                        temperature=0.6,
+                    )
+
+                    # Acceder correctamente al contenido generado
+                    calendario_generado = response.choices[0].message.content.strip()
+                    
+                    # Guardar el nuevo calendario en la base de datos
+                    nuevo_calendario = Calendario.objects.create(usuario=user, contenido=calendario_generado)
+                    ultimo_calendario = nuevo_calendario  # Actualizar el último calendario
+
+                except Exception as e:
+                    calendario_generado = f"Error al generar el calendario: {str(e)}"
+            pass
+
     return render(request, 'generar_calendario.html', {'ultimo_calendario': ultimo_calendario})
-
-
-
