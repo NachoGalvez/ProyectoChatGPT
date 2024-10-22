@@ -18,14 +18,16 @@
 
 </head>
 <body>
-
+    <div class="logo-flotante">
+        <img src="{% static 'miApp/images/logo_calendaria.png' %}" alt="Logo" class="img-fluid">
+    </div>
     <div class="wrapper d-flex align-items-stretch">
         <!-- Barra lateral -->
         <nav id="sidebar">
             <div class="custom-menu">
                 <button type="button" id="sidebarCollapse" class="btn btn-primary"></button>
             </div>
-            <div class="img bg-wrap text-center py-4" style="background-image: url('{% static 'miApp/images/bg_1.jpg' %}');">
+            <div class="img bg-wrap text-center py-4" style="background-image: url('{% static 'miApp/images/bg_1.png' %}');">
                 <div class="user-logo">
                     <div class="img" style="background-image: url('{% static 'miApp/images/logo.jpg' %}');"></div>
                     <h3>{{ request.user.alias }}</h3>

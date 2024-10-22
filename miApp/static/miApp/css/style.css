@@ -109,6 +109,17 @@ dd {
   margin-bottom: .5rem;
   margin-left: 0; }
 
+.logo-flotante {
+    position: fixed;
+    top: 10px;  /* Ajusta la distancia desde el borde superior */
+    right: 10px;  /* Ajusta la distancia desde el borde derecho */
+    z-index: 9999;  /* Asegura que el logo se muestre encima de otros elementos */
+}
+
+.logo-flotante img {
+    max-width: 100px;  /* Ajusta el tamaño del logo según lo necesites */
+    height: auto;  /* Mantiene las proporciones de la imagen */
+}
 blockquote {
   margin: 0 0 1rem; }
 
@@ -8368,3 +8379,5 @@ a[data-toggle="collapse"] {
 
 .subscribe-form .form-control {
   background: #4897fc; }
+
+
