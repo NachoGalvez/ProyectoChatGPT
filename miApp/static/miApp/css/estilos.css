@@ -2,6 +2,18 @@ body {
     font-family: 'Arial', sans-serif;
     background-color: #f8f9fa; /* Fondo claro */
 }
+.logo-flotante {
+  position: fixed;
+  top: 10px;  /* Ajusta la distancia desde el borde superior */
+  right: 10px;  /* Ajusta la distancia desde el borde derecho */
+  z-index: 9999;  /* Asegura que el logo se muestre encima de otros elementos */
+}
+
+.logo-flotante img {
+  max-width: 100px;  /* Ajusta el tamaño del logo según lo necesites */
+  height: auto;  /* Mantiene las proporciones de la imagen */
+}
+
 .container-form {
     background-color: #ffffff;
     border-radius: 10px;
